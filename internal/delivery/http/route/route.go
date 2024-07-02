@@ -2,12 +2,13 @@ package route
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"hireplus-project/internal/config"
 	httpdelivery "hireplus-project/internal/delivery/http"
 	middleware "hireplus-project/internal/delivery/http/midlleware"
 	"hireplus-project/internal/service"
 )
 
-func SetupRoutes(app *fiber.App, userService service.UserService, transactionService service.TransactionService) {
+func SetupRoutes(app *fiber.App, userService service.UserService, transactionService service.TransactionService, cfg config.Config) {
 	// Initialize http
 	userController := httpdelivery.NewUserController(userService)
 	transactionController := httpdelivery.NewTransactionController(transactionService)
@@ -17,7 +18,7 @@ func SetupRoutes(app *fiber.App, userService service.UserService, transactionSer
 	app.Post("/api/login", userController.Login)
 
 	// Protected routes
-	api := app.Group("/api", middleware.AuthMiddleware())
+	api := app.Group("/api", middleware.AuthMiddleware(cfg))
 	api.Post("/topup", transactionController.TopUp)
 	api.Post("/pay", transactionController.Payment)
 	api.Post("/transfer", transactionController.Transfer)

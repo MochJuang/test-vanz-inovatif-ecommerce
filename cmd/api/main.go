@@ -34,7 +34,7 @@ func main() {
 	transactionRepo := mysql.NewTransactionRepository(db)
 
 	// Initialize services
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, cfg)
 	transactionService := service.NewTransactionService(transactionRepo, userRepo)
 
 	// Initialize Fiber app
@@ -43,7 +43,7 @@ func main() {
 	app.Use(logger.New())
 
 	// Setup routes
-	route.SetupRoutes(app, userService, transactionService)
+	route.SetupRoutes(app, userService, transactionService, cfg)
 
 	// Start server
 	log.Fatal(app.Listen(cfg.ServerAddress))

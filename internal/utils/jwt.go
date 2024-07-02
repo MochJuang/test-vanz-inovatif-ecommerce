@@ -2,18 +2,15 @@ package utils
 
 import (
 	"github.com/dgrijalva/jwt-go"
-	"os"
 	"time"
 )
-
-var jwtKey = os.Getenv("JWT_SECRET")
 
 type Claims struct {
 	UserID string `json:"user_id"`
 	jwt.StandardClaims
 }
 
-func GenerateToken(userID string) (string, error) {
+func GenerateToken(userID string, jwtKey string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		UserID: userID,
@@ -22,13 +19,13 @@ func GenerateToken(userID string) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtKey)
+	return token.SignedString([]byte(jwtKey))
 }
 
-func ParseToken(tokenStr string) (*Claims, error) {
+func ParseToken(tokenStr string, jwtKey string) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		return []byte(jwtKey), nil
 	})
 	if err != nil {
 		return nil, err

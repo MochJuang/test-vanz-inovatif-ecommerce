@@ -34,6 +34,14 @@ func (r *userRepository) GetUserByID(userID string) (*entity.User, error) {
 	return &user, nil
 }
 
+func (r *userRepository) CreateUserBalance(userID string) error {
+	balance := &entity.UserBalance{
+		UserID:  userID,
+		Balance: 0.0,
+	}
+	return r.db.Create(balance).Error
+}
+
 func (r *userRepository) UpdateUser(user *entity.User) error {
 	return r.db.Save(user).Error
 }

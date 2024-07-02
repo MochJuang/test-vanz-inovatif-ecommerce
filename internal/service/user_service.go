@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"hireplus-project/internal/config"
 	"hireplus-project/internal/entity"
 	"hireplus-project/internal/repository"
 	"hireplus-project/internal/utils"
@@ -19,10 +20,11 @@ type UserService interface {
 
 type userService struct {
 	userRepo repository.UserRepository
+	config   config.Config
 }
 
-func NewUserService(userRepo repository.UserRepository) UserService {
-	return &userService{userRepo}
+func NewUserService(userRepo repository.UserRepository, cfg config.Config) UserService {
+	return &userService{userRepo, cfg}
 }
 
 func (s *userService) Register(firstName, lastName, phone, address, pin string) (*entity.User, error) {
@@ -38,6 +40,11 @@ func (s *userService) Register(firstName, lastName, phone, address, pin string) 
 	if err := s.userRepo.CreateUser(user); err != nil {
 		return nil, err
 	}
+
+	if err := s.userRepo.CreateUserBalance(user.ID); err != nil {
+		return nil, err
+	}
+
 	return user, nil
 }
 
@@ -51,13 +58,17 @@ func (s *userService) Login(phone, pin string) (string, string, error) {
 		return "", "", fmt.Errorf("phone number or PIN is incorrect")
 	}
 
-	accessToken, err := utils.GenerateToken(user.ID)
+	jwtKey := s.config.JWTSecret
+
+	accessToken, err := utils.GenerateToken(user.ID, jwtKey)
 	if err != nil {
+		fmt.Println("error generate access token:", err.Error())
 		return "", "", err
 	}
 
-	refreshToken, err := utils.GenerateToken(user.ID)
+	refreshToken, err := utils.GenerateToken(user.ID, jwtKey)
 	if err != nil {
+		fmt.Println("error generate refresh token", err.Error())
 		return "", "", err
 	}
 

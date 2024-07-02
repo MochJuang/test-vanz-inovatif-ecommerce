@@ -9,4 +9,5 @@ type UserRepository interface {
 	UpdateUser(user *entity.User) error
 	GetUserBalance(userID string) (float64, error)
 	UpdateUserBalance(userID string, balance float64) error
+	CreateUserBalance(userID string) error
 }
