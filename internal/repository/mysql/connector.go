@@ -4,10 +4,10 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"hireplus-project/internal/config"
-	"hireplus-project/internal/entity"
 	"log"
 	"os"
+	"test-vanz-inovatif-ecommerce/internal/config"
+	"test-vanz-inovatif-ecommerce/internal/entity"
 	"time"
 )
 
@@ -31,7 +31,7 @@ func NewConnector(cfg config.Config) (*gorm.DB, error) {
 }
 
 func Migrate(db *gorm.DB) error {
-	err := db.AutoMigrate(&entity.User{}, &entity.UserBalance{}, &entity.Transaction{})
+	err := db.AutoMigrate(&entity.User{}, &entity.Product{}, &entity.Cart{}, &entity.Order{}, &entity.OrderItem{})
 	if err != nil {
 		return err
 	}

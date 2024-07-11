@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"hireplus-project/internal/config"
-	"hireplus-project/internal/utils"
 	"strings"
+	"test-vanz-inovatif-ecommerce/internal/config"
+	"test-vanz-inovatif-ecommerce/internal/utils"
 )
 
 func AuthMiddleware(cfg config.Config) fiber.Handler {

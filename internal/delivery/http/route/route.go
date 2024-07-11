@@ -2,26 +2,41 @@ package route
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"hireplus-project/internal/config"
-	httpdelivery "hireplus-project/internal/delivery/http"
-	middleware "hireplus-project/internal/delivery/http/midlleware"
-	"hireplus-project/internal/service"
+	"gorm.io/gorm"
+	"test-vanz-inovatif-ecommerce/internal/config"
+	"test-vanz-inovatif-ecommerce/internal/delivery/http"
+	middleware "test-vanz-inovatif-ecommerce/internal/delivery/http/midlleware"
+	"test-vanz-inovatif-ecommerce/internal/repository/mysql"
+	"test-vanz-inovatif-ecommerce/internal/service"
 )
 
-func SetupRoutes(app *fiber.App, userService service.UserService, transactionService service.TransactionService, cfg config.Config) {
-	// Initialize http
-	userController := httpdelivery.NewUserController(userService)
-	transactionController := httpdelivery.NewTransactionController(transactionService)
+func SetupRoutes(app *fiber.App, db *gorm.DB, cfg config.Config) {
+	api := app.Group("/api")
 
-	// Public routes
-	app.Post("/api/register", userController.Register)
-	app.Post("/api/login", userController.Login)
+	userRepo := mysql.NewUserRepository(db)
+	productRepo := mysql.NewProductRepository(db)
+	cartRepo := mysql.NewCartRepository(db)
+	orderRepo := mysql.NewOrderRepository(db)
 
-	// Protected routes
-	api := app.Group("/api", middleware.AuthMiddleware(cfg))
-	api.Post("/topup", transactionController.TopUp)
-	api.Post("/pay", transactionController.Payment)
-	api.Post("/transfer", transactionController.Transfer)
-	api.Get("/transactions", transactionController.TransactionsReport)
-	api.Put("/profile", userController.UpdateProfile)
+	userService := service.NewUserService(userRepo, cfg)
+	productService := service.NewProductService(productRepo)
+	cartService := service.NewCartService(cartRepo, productRepo, userRepo)
+	orderService := service.NewOrderService(orderRepo, cartRepo, userRepo)
+
+	userHandler := http.NewUserHandler(userService)
+	productHandler := http.NewProductHandler(productService)
+	cartHandler := http.NewCartHandler(cartService)
+	orderHandler := http.NewOrderHandler(orderService)
+
+	api.Post("/register", userHandler.Register)
+	api.Post("/login", userHandler.Login)
+
+	api.Use(middleware.AuthMiddleware(cfg))
+	api.Get("/products", productHandler.GetProducts)
+
+	api.Post("/cart", cartHandler.AddToCart)
+	api.Get("/cart/:user_id", cartHandler.GetCartByUserID)
+	api.Delete("/cart/:user_id", cartHandler.ClearCartByUserID)
+
+	api.Post("/checkout/:user_id", orderHandler.Checkout)
 }

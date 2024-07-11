@@ -3,11 +3,10 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"hireplus-project/internal/config"
-	"hireplus-project/internal/delivery/http/route"
-	"hireplus-project/internal/repository/mysql"
-	"hireplus-project/internal/service"
 	"log"
+	"test-vanz-inovatif-ecommerce/internal/config"
+	"test-vanz-inovatif-ecommerce/internal/delivery/http/route"
+	"test-vanz-inovatif-ecommerce/internal/repository/mysql"
 )
 
 func main() {
@@ -29,21 +28,12 @@ func main() {
 		log.Fatalf("Could not migrate database: %v", err)
 	}
 
-	// Initialize repositories
-	userRepo := mysql.NewUserRepository(db)
-	transactionRepo := mysql.NewTransactionRepository(db)
-
-	// Initialize services
-	userService := service.NewUserService(userRepo, cfg)
-	transactionService := service.NewTransactionService(transactionRepo, userRepo)
-
-	// Initialize Fiber app
 	app := fiber.New()
 
 	app.Use(logger.New())
 
 	// Setup routes
-	route.SetupRoutes(app, userService, transactionService, cfg)
+	route.SetupRoutes(app, db, cfg)
 
 	// Start server
 	log.Fatal(app.Listen(cfg.ServerAddress))

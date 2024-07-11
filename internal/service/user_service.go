@@ -1,21 +1,18 @@
 package service
 
 import (
-	"fmt"
-	"hireplus-project/internal/config"
-	"hireplus-project/internal/entity"
-	"hireplus-project/internal/repository"
-	"hireplus-project/internal/utils"
-	"time"
-
-	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+	"strconv"
+	"test-vanz-inovatif-ecommerce/internal/config"
+	"test-vanz-inovatif-ecommerce/internal/entity"
+	"test-vanz-inovatif-ecommerce/internal/model"
+	"test-vanz-inovatif-ecommerce/internal/repository"
+	"test-vanz-inovatif-ecommerce/internal/utils"
 )
 
 type UserService interface {
-	Register(firstName, lastName, phone, address, pin string) (*entity.User, error)
-	Login(phone, pin string) (string, string, error)
-	UpdateProfile(userID, firstName, lastName, address string) (*entity.User, error)
-	GetUserBalance(userID string) (float64, error)
+	Register(req model.UserRegisterRequest) error
+	Login(req model.UserLoginRequest) (string, error)
 }
 
 type userService struct {
@@ -23,76 +20,38 @@ type userService struct {
 	config   config.Config
 }
 
-func NewUserService(userRepo repository.UserRepository, cfg config.Config) UserService {
-	return &userService{userRepo, cfg}
+func NewUserService(ur repository.UserRepository, cfg config.Config) UserService {
+	return &userService{userRepo: ur, config: cfg}
 }
 
-func (s *userService) Register(firstName, lastName, phone, address, pin string) (*entity.User, error) {
-	user := &entity.User{
-		ID:          uuid.New().String(),
-		FirstName:   firstName,
-		LastName:    lastName,
-		PhoneNumber: phone,
-		Address:     address,
-		Pin:         pin,
-		CreatedAt:   time.Now(),
-	}
-	if err := s.userRepo.CreateUser(user); err != nil {
-		return nil, err
+func (s *userService) Register(req model.UserRegisterRequest) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
 	}
 
-	if err := s.userRepo.CreateUserBalance(user.ID); err != nil {
-		return nil, err
+	user := entity.User{
+		Email:    req.Email,
+		Password: string(hashedPassword),
 	}
 
-	return user, nil
+	return s.userRepo.Create(user)
 }
 
-func (s *userService) Login(phone, pin string) (string, string, error) {
-	user, err := s.userRepo.GetUserByPhone(phone)
+func (s *userService) Login(req model.UserLoginRequest) (string, error) {
+	user, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
-		return "", "", fmt.Errorf("phone number or PIN is incorrect")
+		return "", err
 	}
 
-	if user.Pin != pin {
-		return "", "", fmt.Errorf("phone number or PIN is incorrect")
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return "", err
 	}
 
-	jwtKey := s.config.JWTSecret
-
-	accessToken, err := utils.GenerateToken(user.ID, jwtKey)
+	token, err := utils.GenerateToken(strconv.Itoa(int(user.ID)), s.config.JWTSecret)
 	if err != nil {
-		fmt.Println("error generate access token:", err.Error())
-		return "", "", err
+		return "", err
 	}
 
-	refreshToken, err := utils.GenerateToken(user.ID, jwtKey)
-	if err != nil {
-		fmt.Println("error generate refresh token", err.Error())
-		return "", "", err
-	}
-
-	return accessToken, refreshToken, nil
-}
-
-func (s *userService) UpdateProfile(userID, firstName, lastName, address string) (*entity.User, error) {
-	user, err := s.userRepo.GetUserByID(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	user.FirstName = firstName
-	user.LastName = lastName
-	user.Address = address
-	user.UpdatedAt = time.Now()
-
-	if err := s.userRepo.UpdateUser(user); err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
-func (s *userService) GetUserBalance(userID string) (float64, error) {
-	return s.userRepo.GetUserBalance(userID)
+	return token, nil
 }

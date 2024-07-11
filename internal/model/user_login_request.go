@@ -1,6 +1,6 @@
 package model
 
 type UserLoginRequest struct {
-	PhoneNumber string `json:"phone_number"`
-	Pin         string `json:"pin"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
