@@ -15,12 +15,7 @@ func NewOrderRepository(db *gorm.DB) repository.OrderRepository {
 }
 
 func (r *orderRepository) CreateOrder(order entity.Order) error {
-
-	if err := r.db.Create(&order).Error; err != nil {
-		return err
-	}
-
-	return order
+	return r.db.Create(&order).Error
 }
 
 func (r *orderRepository) BeginTransaction() (repository.DatabaseTransactionRepository, error) {

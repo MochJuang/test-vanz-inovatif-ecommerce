@@ -20,7 +20,7 @@ func (r *cartRepository) AddToCart(cart entity.Cart) error {
 
 func (r *cartRepository) GetCartByUserID(userID uint) ([]entity.Cart, error) {
 	var carts []entity.Cart
-	err := r.db.Where("user_id = ?", userID).Find(&carts).Error
+	err := r.db.Where("user_id = ?", userID).Preload("Product").Find(&carts).Error
 	return carts, err
 }
 

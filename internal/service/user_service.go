@@ -11,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	Register(req model.UserRegisterRequest) error
+	Register(req model.UserRegisterRequest) (string, error)
 	Login(req model.UserLoginRequest) (string, error)
 }
 
@@ -24,10 +24,10 @@ func NewUserService(ur repository.UserRepository, cfg config.Config) UserService
 	return &userService{userRepo: ur, config: cfg}
 }
 
-func (s *userService) Register(req model.UserRegisterRequest) error {
+func (s *userService) Register(req model.UserRegisterRequest) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	user := entity.User{
@@ -35,7 +35,17 @@ func (s *userService) Register(req model.UserRegisterRequest) error {
 		Password: string(hashedPassword),
 	}
 
-	return s.userRepo.Create(user)
+	err = s.userRepo.Create(user)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := utils.GenerateToken(strconv.Itoa(int(user.ID)), s.config.JWTSecret)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (s *userService) Login(req model.UserLoginRequest) (string, error) {

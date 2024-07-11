@@ -1,0 +1,222 @@
+{
+	"info": {
+		"_postman_id": "ee2b8d61-2c29-4995-9cf4-b43a1933c6c7",
+		"name": "Ecommerce API Collection",
+		"description": "Collection for Ecommerce API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7914152"
+	},
+	"item": [
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"token\", jsonData.token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Products",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMCIsImV4cCI6MTcyMDc2MzkzOX0.uzgtAjXfhfEiyJ_cYKafxXkyCaUJJ9aX3IieShWvaDs",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/products",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add to Cart",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": 1,\n    \"product_id\": 1,\n    \"quantity\": 2\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/cart",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"cart"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Cart by User ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/cart/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"cart",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Clear Cart by User ID",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/cart/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"cart",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Checkout",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/checkout/1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"checkout",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

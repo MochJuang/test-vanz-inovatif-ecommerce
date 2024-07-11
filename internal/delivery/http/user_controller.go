@@ -21,12 +21,12 @@ func (h *Handler) Register(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	err := h.userService.Register(req)
+	token, err := h.userService.Register(req)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.SendStatus(http.StatusCreated)
+	return c.JSON(fiber.Map{"token": token})
 }
 
 func (h *Handler) Login(c *fiber.Ctx) error {
